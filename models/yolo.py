@@ -48,13 +48,10 @@ from models.common import (
     GhostBottleneck,
     GhostConv,
     Proto,
-    BiFPN_Add2,
-    BiFPN_Add3,
-    C3CA, SCDown,
+    SCDown,
     AttentionModule, WaveletTransform_H, WaveletTransform_L,
     WaveletTransform_LL, WaveletTransform_LH, WaveletTransform_HL, WaveletTransform_HH,
-    WaveletTransform_LL2, WaveletTransform_LH2, WaveletTransform_HL2, WaveletTransform_HH2,
-    SE_Block, SCDown, DP_C3, CoordAtt
+    WaveletTransform_LL2, WaveletTransform_LH2, WaveletTransform_HL2, WaveletTransform_HH2
 
 )
 from models.experimental import MixConv2d
@@ -83,7 +80,7 @@ class Detect(nn.Module):
     dynamic = False  # force grid reconstruction
     export = False  # export mode
 
-    def __init__(self, nc=4, anchors=(), ch=(), inplace=True):
+    def __init__(self, nc=12, anchors=(), ch=(), inplace=True):
         """Initializes YOLOv5 detection layer with specified classes, anchors, channels, and inplace operations."""
         super().__init__()
         self.nc = nc  # number of classes
@@ -397,7 +394,7 @@ def parse_model(d, ch):  # model_dict, input_channels(3)
             nn.ConvTranspose2d,
             DWConvTranspose2d,
             C3x,
-            C3CA,SCDown,SE_Block,SCDown,DP_C3,CoordAtt
+            SCDown
         }:
             c1, c2 = ch[f], args[0]
             if c2 != no:  # if not output
@@ -431,9 +428,6 @@ def parse_model(d, ch):  # model_dict, input_channels(3)
              m.add_module(f'WaveletTransform_L', WaveletTransform_L())
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
-            # 添加bifpn_add结构
-        elif m in [BiFPN_Add2, BiFPN_Add3]:
-            c2 = max([ch[x] for x in f])
         # TODO: channel, gw, gd
         elif m in {Detect, Segment}:
             args.append([ch[x] for x in f])
@@ -463,7 +457,7 @@ def parse_model(d, ch):  # model_dict, input_channels(3)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--cfg", type=str, default="E:/AAAyolov5-master/yolov5-RSOD/models/yolov5s_2DWT-2.0b（2）.yaml", help="model.yaml")
+    parser.add_argument("--cfg", type=str, default="", help="model.yaml")
     parser.add_argument("--batch-size", type=int, default=1, help="total batch size for all GPUs")
     parser.add_argument("--device", default="", help="cuda device, i.e. 0 or 0,1,2,3 or cpu")
     parser.add_argument("--profile", action="store_true", help="profile model speed")
