@@ -1,0 +1,85 @@
+# yolov5s_wavelet.yaml
+nc: 4  # number of classes
+depth_multiple: 0.33  # model depth multiple
+width_multiple: 0.5  # layer channel multiple
+anchors:
+  - [10, 13, 16, 30, 33, 23] # P3/8
+  - [30, 61, 62, 45, 59, 119] # P4/16
+  - [116, 90, 156, 198, 373, 326] # P5/32
+backbone:
+  # [from, number, module, args]
+  [[-1, 1, Conv, [64, 3, 1, 1]],  # 0 - Process LL (Low Frequency) component]
+   [0, 1, WaveletTransform_LL, []],  # 1 - Apply Wavelet Transform
+   [0, 1, WaveletTransform_LH, []], # 2 - Apply Wavelet Transform
+   [0, 1, WaveletTransform_HL, []], # 3 - Apply Wavelet Transform
+   [0, 1, WaveletTransform_HH, []], # 4 - Apply Wavelet Transform
+
+   [0, 1, WaveletTransform_LL2, []], # 5 - Apply Wavelet Transform
+   [0, 1, WaveletTransform_LH2, []], # 6 - Apply Wavelet Transform
+   [0, 1, WaveletTransform_HL2, []], # 7 - Apply Wavelet Transform
+   [0, 1, WaveletTransform_HH2, []], # 8 - Apply Wavelet Transform
+
+   [2, 1, Conv, [64, 3, 1]],  # 9
+   [3, 1, Conv, [64, 3, 1]],  # 10
+   [4, 1, Conv, [64, 3, 1]],  # 11  一次小波分解  1/2
+
+   [5, 1, Conv, [128, 3, 1]], # 12
+   [6, 1, Conv, [128, 3, 1]], # 13
+   [7, 1, Conv, [128, 3, 1]], # 14
+   [8, 1, Conv, [128, 3, 1]], # 15  二次小波变换  1/4
+
+   # 一次小波变换卷积后与二次小波变换LH,HL,HH 分别融合
+   [9, 1, Conv, [128, 3, 2]],  # 16                  LH
+   [[13, 16], 1, Concat, [1]],   #17
+
+   [10, 1, Conv, [128, 3, 2]],  # 18  HL
+   [[14, 18], 1, Concat, [1]],    # 19
+
+   [11, 1, Conv, [128, 3, 2]],  # 20  一次小波变换卷积下采样 1/4
+   [[15,20 ], 1, Concat, [1]],    #21 HH
+
+#  完成小波变换部分，尺度为1/4
+   [17, 1, Conv, [256, 3, 2]],  # 22 - P3/8
+   [19, 1, Conv, [256, 3, 2]],  # 23 - P3/8
+   [21, 1, Conv, [256, 3, 2]],  # 24
+
+#  完成1/8下采样，融合LH2,HL2,HH2三个分支
+   [[22 ,23 , 24], 1, Concat, [1]],  # 25
+   [25, 6, C3, [512]],  # 26
+#  对LL2进行卷积到1/8
+   [12, 1, Conv, [256, 3, 2]],  #27
+#  融合低频和高频
+   [[26 ,27 ], 1, Concat, [1]],  #28
+
+#  以下是共享部分：1/16，1/32
+   [28, 1, Conv, [512, 3, 2]],  # 29
+   [29, 6, C3, [512]],  # 30           1/16
+
+   [30, 1, Conv, [1024, 3, 2]],  # 31
+   [31, 6, C3, [1024]],  # 32          1/32
+
+   [32, 1, SPPF, [1024, 5]],  # 33
+  ]
+
+head:
+  [
+   [33, 1, Conv, [512, 1, 1]],  # 34
+   [34, 1,  nn.Upsample, [None, 2, 'nearest']],  # 35
+   [[35, 30], 1, Concat, [1]],  # 36
+   [36, 3, C3, [512, False]],  # 37      1/16
+
+   [37, 1, Conv, [256, 1, 1]],  # 38
+   [38, 1, nn.Upsample, [None, 2, 'nearest']],  # 39
+   [[39,28 ], 1, Concat, [1]],  # 40
+   [40, 3, C3, [256, False]],  # 41       1/8
+
+   [41, 1, Conv, [256, 1, 2 ] ],  # 42
+   [[42,37], 1, Concat, [1] ],  # 43
+   [43, 3, C3, [512, False] ],  # 44 (P4/16-medium) 1/16
+
+   [44, 1, Conv, [512,1 ,2] ],  # 45
+   [[45,34], 1, Concat, [1] ],  # 46
+   [46, 3, C3, [1024, False] ],  # 47 (P5/32-large) 1/32
+
+   [[41, 44, 47], 1, Detect, [nc, anchors]], # Detect(P3, P4, P5)  47
+  ]
