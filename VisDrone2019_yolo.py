@@ -29,7 +29,7 @@ def visdrone2yolo(dir):
                     fl.writelines(lines)  # write label.txt
 
 
-dir = Path(r'E:/AAAyolov5-master/datasets/VisDrone2019')  # dataset文件夹下Visdrone2019文件夹路径
+dir = Path(r'')  # dataset文件夹下Visdrone2019文件夹路径
 # Convert
 for d in 'VisDrone2019-DET-train', 'VisDrone2019-DET-val':
     visdrone2yolo(dir / d)  # convert VisDrone annotations to YOLO labels
