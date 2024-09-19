@@ -514,9 +514,9 @@ def train(hyp, opt, device, callbacks):
 def parse_opt(known=False):
     """Parses command-line arguments for YOLOv5 training, validation, and testing."""
     parser = argparse.ArgumentParser()
-    parser.add_argument("--weights", type=str, default=ROOT / "yolov5s.pt", help="initial weights path")
-    parser.add_argument("--cfg", type=str, default="E:/AAAyolov5-master/yolov5-RSOD/models/yolov5s_2DWT-2.0b（2）.yaml", help="model.yaml path")
-    parser.add_argument("--data", type=str, default=ROOT / "E:/AAAyolov5-master/yolov5-RSOD/data/VisDrone2019.yaml", help="dataset.yaml path")
+    parser.add_argument("--weights", type=str, default=ROOT / "", help="initial weights path")
+    parser.add_argument("--cfg", type=str, default="", help="model.yaml path")
+    parser.add_argument("--data", type=str, default=ROOT / "", help="dataset.yaml path")
     parser.add_argument("--hyp", type=str, default=ROOT / "data/hyps/hyp.scratch-low.yaml", help="hyperparameters path")
     parser.add_argument("--epochs", type=int, default=100, help="total training epochs")
     parser.add_argument("--batch-size", type=int, default=4, help="total batch size for all GPUs, -1 for autobatch")
