@@ -70,7 +70,7 @@ from utils.torch_utils import select_device, smart_inference_mode
 
 @smart_inference_mode()
 def run(
-    weights=ROOT / "E:/AAAyolov5-master/yolov5-RSOD/runs/train/exp17/weights/best.pt",  # model path or triton URL
+    weights=ROOT / "",  # model path or triton URL
     source=ROOT / "data/images",  # file/dir/URL/glob/screen/0(webcam)
     data=ROOT / "data/VisDrone2019.yaml",  # dataset.yaml path
     imgsz=(640, 640),  # inference size (height, width)
@@ -269,7 +269,7 @@ def run(
 def parse_opt():
     """Parses command-line arguments for YOLOv5 detection, setting inference options and model configurations."""
     parser = argparse.ArgumentParser()
-    parser.add_argument("--weights", nargs="+", type=str, default=ROOT / "E:/AAAyolov5-master/yolov5-RSOD/runs/train/exp23/weights/best.pt", help="model path or triton URL")
+    parser.add_argument("--weights", nargs="+", type=str, default=ROOT / "", help="model path or triton URL")
     parser.add_argument("--source", type=str, default=ROOT / "data/images", help="file/dir/URL/glob/screen/0(webcam)")
     parser.add_argument("--data", type=str, default=ROOT / "data/VisDrone2019.yaml.yaml", help="(optional) dataset.yaml path")
     parser.add_argument("--imgsz", "--img", "--img-size", nargs="+", type=int, default=[640], help="inference size h,w")
